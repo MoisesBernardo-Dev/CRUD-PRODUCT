@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Banco de Dados do Auth Service
+  db-auth:
+    image: mysql:8.0
+    container_name: db-auth
+    restart: always
+    environment:
+      MYSQL_DATABASE: db_auth_service
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_auth_data:/var/lib/mysql
+
+  # Banco de Dados do Product Service
+  db-product:
+    image: postgres:15-alpine
+    container_name: db-product
+    restart: always
+    environment:
+      POSTGRES_DB: db_product_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432" # Porta padrão do Postgres
+    volumes:
+      - db_product_data:/var/lib/postgresql/data
+
+  # Microsserviço de Autenticação
+  auth-service:
+    build:
+      context: ./auth-services
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db-auth
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db-auth
+      DB_PORT: 3306
+      DB_DATABASE: db_auth_service
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+  # Microsserviço de Produtos
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: always
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db-product
+      - auth-service
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db-product
+      DB_PORT: 5432
+      DB_DATABASE: db_product_service
+      DB_USERNAME: postgres
+      DB_PASSWORD: root
+      AUTH_SERVICE_URL: http://auth-service:8000/api
+
+  # Frontend em React
+  frontend:
+    build:
+      context: ./front-end-react
+      dockerfile: Dockerfile
+    container_name: frontend-react
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - auth-service
+      - product-service
+
+volumes:
+  db_auth_data:
+  db_product_data:
