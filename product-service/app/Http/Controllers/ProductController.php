@@ -10,7 +10,6 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        // Substituído o 'get' descontinuado pelo 'input' seguro
         $user = $request->input('auth_user');
 
         $products = Product::where('user_id', $user['id'])->get();

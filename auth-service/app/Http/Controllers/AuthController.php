@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use OpenApi\Attributes as OA; // Importação essencial para os atributos
+use OpenApi\Attributes as OA;
 
 #[OA\Info(
     version: "1.0.0",
@@ -48,7 +48,6 @@ class AuthController extends Controller
             'role' => 'client',
         ]);
 
-        // Usa o helper direto do JWTAuth que a IDE reconhece o retorno da String do Token
         $token = \Tymon\JWTAuth\Facades\JWTAuth::fromUser($user);
 
         return response()->json([
@@ -95,7 +94,7 @@ class AuthController extends Controller
 
     public function refresh()
     {
-        // Usa a Facade do JWTAuth para fazer o refresh (a IDE reconhece perfeitamente)
+        // Usa a Facade do JWTAuth para fazer o refresh
         $newToken = \Tymon\JWTAuth\Facades\JWTAuth::refresh(\Tymon\JWTAuth\Facades\JWTAuth::getToken());
 
         return response()->json([
